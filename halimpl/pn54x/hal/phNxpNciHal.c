@@ -30,6 +30,7 @@
 #include <phNxpNciHal_NfcDepSWPrio.h>
 #include <phNxpNciHal_Kovio.h>
 #include <phTmlNfc_i2c.h>
+#include <cutils/properties.h>
 /*********************** Global Variables *************************************/
 #define PN547C2_CLOCK_SETTING
 #undef  PN547C2_FACTORY_RESET_DEBUG
@@ -1805,8 +1806,18 @@ retry_core_init:
         uint8_t swp_info_buff[2];
         uint8_t swp_intf_status = 0x00;
         uint8_t swp1A_intf_status = 0x00;
+        char nq_chipid[PROPERTY_VALUE_MAX] = {0};
+        int rc = 0;
         NFCSTATUS status = NFCSTATUS_FAILED;
         phNxpNci_EEPROM_info_t swp_intf_info;
+
+        rc = __system_property_get("sys.nfc.nq.chipid", nq_chipid);
+        if (rc <= 0) {
+            NXPLOG_NCIHAL_E("get sys.nfc.nq.chipid fail, rc = %d\n", rc);
+        }
+        else {
+            NXPLOG_NCIHAL_D("sys.nfc.nq.chipid = %s\n", nq_chipid);
+        }
 
         memset(swp_info_buff,0,sizeof(swp_info_buff));
         /*Read SWP1 data*/
@@ -1824,23 +1835,23 @@ retry_core_init:
             retry_core_init_cnt++;
             goto retry_core_init;
         }
-#if (NFC_NXP_STAT_DUAL_UICC_WO_EXT_SWITCH == TRUE)
-        //Read SWP1A data
-        memset(&swp_intf_info,0,sizeof(swp_intf_info));
-        swp_intf_info.request_mode = GET_EEPROM_DATA;
-        swp_intf_info.request_type = EEPROM_SWP1A_INTF;
-        swp_intf_info.buffer = &swp1A_intf_status;
-        swp_intf_info.bufflen = sizeof(uint8_t);
-        status = request_EEPROM(&swp_intf_info);
-        if(status == NFCSTATUS_OK)
-            swp_info_buff[1] = swp1A_intf_status;
-        else
-        {
-            NXPLOG_NCIHAL_E("request_EEPROM error occured %d", status);
-            retry_core_init_cnt++;
-            goto retry_core_init;
+        if ((rc > 0) && (strncmp(nq_chipid, NQ220, PROPERTY_VALUE_MAX) != 0) && (strncmp(nq_chipid, NQ210, PROPERTY_VALUE_MAX) != 0)) {
+            //Read SWP1A data
+            memset(&swp_intf_info,0,sizeof(swp_intf_info));
+            swp_intf_info.request_mode = GET_EEPROM_DATA;
+            swp_intf_info.request_type = EEPROM_SWP1A_INTF;
+            swp_intf_info.buffer = &swp1A_intf_status;
+            swp_intf_info.bufflen = sizeof(uint8_t);
+            status = request_EEPROM(&swp_intf_info);
+            if(status == NFCSTATUS_OK)
+                swp_info_buff[1] = swp1A_intf_status;
+            else
+            {
+                NXPLOG_NCIHAL_E("request_EEPROM error occured %d", status);
+                retry_core_init_cnt++;
+                goto retry_core_init;
+            }
         }
-#endif
         NXPLOG_NCIHAL_D ("Setting value %d %d",swp_info_buff[1],swp_info_buff[0]);
 #endif //END_OF_NFC_NXP_ESE_ETSI12_PROP_INIT
 
