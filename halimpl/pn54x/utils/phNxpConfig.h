@@ -50,6 +50,7 @@ int GetNxpStrValue(const char* name, char* p_value, unsigned long l);
 int GetNxpNumValue(const char* name, void* p_value, unsigned long len);
 int GetNxpByteArrayValue(const char* name, char* pValue, unsigned long bufflen, long *len);
 void resetNxpConfig(void);
+int isNxpRFConfigModified();
 int isNxpConfigModified();
 int updateNxpConfigTimestamp();
 
@@ -110,10 +111,9 @@ int updateNxpConfigTimestamp();
 #define NAME_NXP_WIREDMODE_RESUME_TIMEOUT  "NXP_WIREDMODE_RESUME_TIMEOUT"
 #define NAME_NXP_UICC_LISTEN_TECH_MASK      "UICC_LISTEN_TECH_MASK"
 #define NAME_NXP_HOST_LISTEN_TECH_MASK      "HOST_LISTEN_TECH_MASK"
-#if ((NFC_NXP_CHIP_TYPE == PN548C2) || (NFC_NXP_CHIP_TYPE == PN551))
+#if(NXP_ESE_SVDD_SYNC == TRUE)
 #define NAME_NXP_SVDD_SYNC_OFF_DELAY "NXP_SVDD_SYNC_OFF_DELAY"
 #endif
-#define NAME_NXP_RF_UPDATE_REQ        "NXP_RF_UPDATE_REQ"
 
 /**
  *  @brief defines the different config files used.
@@ -122,9 +122,11 @@ int updateNxpConfigTimestamp();
 #define config_name_mtp         "libnfc-mtp_default.conf"
 #define config_name_mtp1        "libnfc-mtp_rf1.conf"
 #define config_name_mtp2        "libnfc-mtp_rf2.conf"
+#define config_name_mtp_NQ3XX   "libnfc-mtp-NQ3XX.conf"
 #define config_name_qrd         "libnfc-qrd_default.conf"
 #define config_name_qrd1        "libnfc-qrd_rf1.conf"
 #define config_name_qrd2        "libnfc-qrd_rf2.conf"
+#define config_name_qrd_NQ3XX   "libnfc-qrd-NQ3XX.conf"
 #define config_name_default     "libnfc-nxp_default.conf"
 
 /**
@@ -159,6 +161,13 @@ int updateNxpConfigTimestamp();
  */
 
 #define MAX_DATA_CONFIG_PATH_LEN 64
+
+/**
+ *  @brief Defines the NQ chip type.
+ */
+
+#define NQ210 "0x48"
+#define NQ220 "0x58"
 
 /**
  *  @brief Defines whether debugging is enabled or disabled.
